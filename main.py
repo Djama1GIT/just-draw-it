@@ -8,16 +8,27 @@ bot = telebot.TeleBot(token)
 default_paper_size = (40 * 3, 34 * 3)
 px_in_px = 20
 paper_size = (default_paper_size[0] * px_in_px, default_paper_size[1] * px_in_px)
-threshold = 35  # нужно сделать автоматическое определение чувствительности через среднюю яркость на фото
+sens = 1
+variables = {
+    0: (int(0 * sens), int(0 * sens), int(0 * sens)),
+    1: (int(64 * sens), int(64 * sens), int(64 * sens)),  # .
+    2: (int(127 * sens), int(127 * sens), int(127 * sens)),  # +
+    3: (int(191 * sens), int(191 * sens), int(191 * sens)),  # •
+    4: (int(255 * sens), int(255 * sens), int(255 * sens)),
+}
+variables_img = {
+    variables[0]: '0.png',
+    variables[1]: '1.png',
+    variables[2]: '2.png',
+    variables[3]: '3.png',
+    variables[4]: '4.png',
+}
 
 
 class Img:
     def __init__(self, image_src=None):
         self.image_src = image_src
         self.image = Image.open('img_1.png')
-        # if self.image.size[1] > self.image.size[0]:
-        #     global default_paper_size
-        #     default_paper_size = (default_paper_size[1], default_paper_size[0])
 
     def re(self):
         background = Image.new('RGB', default_paper_size)
@@ -35,21 +46,26 @@ class Img:
         for left in range(self.image.size[0]):
             for up in range(self.image.size[1]):
                 self.image.putpixel((left, up),
-                                    (0, 0, 0) if sum(self.image.getpixel((left, up))) // 3 < threshold else (
-                                        255, 255, 255))
-        for left in range(1, self.image.size[0] - 1):
-            for up in range(1, self.image.size[1] - 1):
-                if self.image.getpixel((left, up)) == (0, 0, 0):
-                    if self.image.getpixel((left - 1, up)) == (255, 255, 255) \
-                            and self.image.getpixel((left + 1, up)) == (255, 255, 255) \
-                            and self.image.getpixel((left, up - 1)) == (255, 255, 255) \
-                            and self.image.getpixel((left, up + 1)) == (255, 255, 255):
-                        self.image.putpixel((left, up), (255, 255, 255))
+                                    variables[round(sum(self.image.getpixel((left, up))) / 3 / 63.75)])
+        background = background.resize(paper_size, resample=Image.NONE)
+        original_image = self.image
+        if self.image.size[1] > self.image.size[0]:
+            self.image = self.image.resize(
+                (self.image.size[0] * int((paper_size[1] / self.image.size[1])), paper_size[1]),
+                resample=Image.NONE)
+        else:
+            self.image = self.image.resize(
+                (paper_size[0], self.image.size[1] * int((paper_size[0] / self.image.size[0]))),
+                resample=Image.NONE)
+        for i in range(original_image.size[0]):
+            for j in range(original_image.size[1]):
+                self.image.paste(
+                    Image.open(variables_img[variables[round(sum(original_image.getpixel((i, j))) / 3 / 63.75)]]),
+                    (i * 20, j * 20))
         if self.image.size[1] > self.image.size[0]:
             background.paste(self.image, ((background.size[0] - self.image.size[0]) // 2, 0))
         else:
             background.paste(self.image, (0, (background.size[1] - self.image.size[1]) // 2))
-        background = background.resize(paper_size, resample=Image.NONE)
         background.save('out.jpg')
         background.show()
 
