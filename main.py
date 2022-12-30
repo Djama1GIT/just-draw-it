@@ -20,34 +20,28 @@ class Img:
         self.variables_img = {self.variables[i]: f'{i}.png' for i in range(len(self.variables))}
 
     def re(self):
+        # нужно укорочать
         background = Image.new('RGB', self.default_paper_size)
         background.paste((255, 255, 255), [0, 0, background.size[0], background.size[1]])
-        if self.image.size[1] > self.image.size[0]:
-            self.image = self.image.resize(
-                (int(self.image.size[0] * (self.default_paper_size[1] / self.image.size[1])),
-                 int(self.image.size[1] * (self.default_paper_size[1] / self.image.size[1]))),
-                resample=Image.BOX)
-        else:
-            self.image = self.image.resize(
-                (int(self.image.size[0] * (self.default_paper_size[0] / self.image.size[0])),
-                 int(self.image.size[1] * (self.default_paper_size[0] / self.image.size[0]))),
-                resample=Image.BOX)
+        self.image = self.image.resize(
+            (int(self.image.size[0] * (self.default_paper_size[temp_bool := self.image.size[1] > self.image.size[0]] /
+                                       self.image.size[temp_bool])),
+             int(self.image.size[1] * (self.default_paper_size[temp_bool] /
+                                       self.image.size[temp_bool]))),
+            resample=Image.BOX)
         for left in range(self.image.size[0]):
             for up in range(self.image.size[1]):
                 self.image.putpixel((left, up), self.variables[
                     min(self.variables_count - 1,
                         round(self.sens * sum(self.image.getpixel((left, up))) / 3 / (
-                                    255 / (self.variables_count - 1))))])
+                                255 / (self.variables_count - 1))))])
         background = background.resize(self.paper_size, resample=Image.NONE)
         original_image = self.image
         if self.image.size[1] > self.image.size[0]:
-            self.image = self.image.resize(
-                (self.image.size[0] * int((self.paper_size[1] / self.image.size[1])), self.paper_size[1]),
-                resample=Image.NONE)
+            temp_sizes = (self.image.size[0] * int((self.paper_size[1] / self.image.size[1])), self.paper_size[1])
         else:
-            self.image = self.image.resize(
-                (self.paper_size[0], self.image.size[1] * int((self.paper_size[0] / self.image.size[0]))),
-                resample=Image.NONE)
+            temp_sizes = (self.paper_size[0], self.image.size[1] * int((self.paper_size[0] / self.image.size[0])))
+        self.image = self.image.resize(temp_sizes, resample=Image.NONE)
         for i in range(original_image.size[0]):
             for j in range(original_image.size[1]):
                 self.image.paste(
