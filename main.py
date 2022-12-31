@@ -20,35 +20,49 @@ class Img:
         self.variables_img = {self.variables[i]: f'{i}.png' for i in range(len(self.variables))}
 
     def re(self):
-        # нужно укорочать
+        # нужно укорочать:
+        # создаю фон,
+        # изменяю размер изображения,
+        # прохожусь по каждому пикселю и устанавливаю соответствующий цвет,
+        # изменяю размер фона,
+        # делаю бекап основного изображения,
+        # изменяю размер основного изображения,
+        # и на основное изображение исходя из бекапа накладываю фотки,
+        # накладываю изображение на фон.
+
+        # нужно прийти к:
+        # создаю фон, согласно изображению,
+        # определяю размер изображения и прохожусь по зонам,
+        # согласно яркости зоны вставляю в фон нужное изображение
+
         background = Image.new('RGB', self.default_paper_size)
-        background.paste((255, 255, 255), [0, 0, background.size[0], background.size[1]])
-        self.image = self.image.resize(
+        background.paste((255, 255, 255), [0, 0, background.size[0], background.size[1]])  # создаю фон
+        self.image = self.image.resize(  # изменяю размер изображения
             (int(self.image.size[0] * (self.default_paper_size[temp_bool := self.image.size[1] > self.image.size[0]] /
                                        self.image.size[temp_bool])),
              int(self.image.size[1] * (self.default_paper_size[temp_bool] /
                                        self.image.size[temp_bool]))),
             resample=Image.BOX)
         for left in range(self.image.size[0]):
-            for up in range(self.image.size[1]):
+            for up in range(self.image.size[1]):  # прохожусь по каждому пикселю и устанавливаю соответствующий цвет
                 self.image.putpixel((left, up), self.variables[
                     min(self.variables_count - 1,
                         round(self.sens * sum(self.image.getpixel((left, up))) / 3 / (
                                 255 / (self.variables_count - 1))))])
-        background = background.resize(self.paper_size, resample=Image.NONE)
-        original_image = self.image
+        background = background.resize(self.paper_size, resample=Image.NONE)  # изменяю размер фона
+        original_image = self.image  # бекап основного изображения
         if self.image.size[1] > self.image.size[0]:
             temp_sizes = (self.image.size[0] * int((self.paper_size[1] / self.image.size[1])), self.paper_size[1])
         else:
             temp_sizes = (self.paper_size[0], self.image.size[1] * int((self.paper_size[0] / self.image.size[0])))
-        self.image = self.image.resize(temp_sizes, resample=Image.NONE)
+        self.image = self.image.resize(temp_sizes, resample=Image.NONE)  # изменяю размер основного изображения
         for i in range(original_image.size[0]):
-            for j in range(original_image.size[1]):
+            for j in range(original_image.size[1]):  # и на основное изображение исходя из бекапа накладываю фотки
                 self.image.paste(
                     Image.open(self.variables_img[self.variables[
                         round(sum(original_image.getpixel((i, j))) / 3 / (255 / (self.variables_count - 1)))]]),
                     (i * 20, j * 20))
-        if self.image.size[1] > self.image.size[0]:
+        if self.image.size[1] > self.image.size[0]:  # накладываю изображение на фон
             background.paste(self.image, ((background.size[0] - self.image.size[0]) // 2, 0))
         else:
             background.paste(self.image, (0, (background.size[1] - self.image.size[1]) // 2))
