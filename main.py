@@ -7,23 +7,26 @@ bot = telebot.TeleBot(token)
 
 
 class Img:
-    def __init__(self, image_src='img_1.png'):
+    variables_count = 5
+    variables_img = {i: f'{i}.png' for i in range(variables_count)}
+    px_in_px = 20
+
+    def __init__(self, image_src='img_1.png', paper=(40, 34), sens=0.65):
         self.image_src = image_src
-        self.image = Image.open(image_src)  # не нужно все в экземпляре хранить (память)
-        self.default_paper_size = (40 * 3, 34 * 3)
-        self.px_in_px = 20
-        self.paper_size = (self.default_paper_size[0] * self.px_in_px, self.default_paper_size[1] * self.px_in_px)
-        self.sens = 0.65
-        self.variables_count = 5
+        self.image = Image.open(image_src)
+        self.paper_size = (paper[0] * 3, paper[1] * 3)  # *3 потому что каждая клетка разбивается на 9
+        self.sens = sens
         self.variables = {i: int(i * (255 / self.variables_count * self.sens)) for i in
                           range(self.variables_count)}
-        self.variables_img = {i: f'{i}.png' for i in range(len(self.variables))}
 
-    def reconstruct(self):
+    def reconstruct(self) -> None:
+        """
+        This function converts an ordinary image into images of a format convenient for drawing on a notebook.
+        """
         self.image = self.image.resize(  # Уменьшаю размер изображения
-            (int(self.image.size[0] * (self.default_paper_size[temp_bool := self.image.size[1] > self.image.size[0]] /
+            (int(self.image.size[0] * (self.paper_size[temp_bool := self.image.size[1] > self.image.size[0]] /
                                        self.image.size[temp_bool])),
-             int(self.image.size[1] * (self.default_paper_size[temp_bool] /
+             int(self.image.size[1] * (self.paper_size[temp_bool] /
                                        self.image.size[temp_bool]))),
             resample=Image.BOX)
         background = Image.new('RGB', (self.image.size[0] * 20, self.image.size[1] * 20))  # создаю фон
@@ -31,7 +34,7 @@ class Img:
         for i in range(self.image.size[0]):
             for j in range(self.image.size[1]):
                 point: Image = None  # и в фон вставляю картинки с разной узором (, а также, соответственно, яркостью)
-                for number_of_variables in range(self.variables_count-1, -1, -1):
+                for number_of_variables in range(self.variables_count - 1, -1, -1):
                     if sum(self.image.getpixel((i, j))) / 3 > self.variables[number_of_variables]:
                         point = Image.open(self.variables_img[number_of_variables])
                         break
