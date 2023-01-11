@@ -7,17 +7,16 @@ bot = telebot.TeleBot(token)
 
 
 class Img:
-    variables_count = 5
-    variables_img = {i: f'{i}.png' for i in range(variables_count)}
-    px_in_px = 20
+    number_of_point_types = 5
+    point_types = {i: f'{i}.png' for i in range(number_of_point_types)}
+    px_in_point = 20
 
-    def __init__(self, image_src='img_1.png', paper=(40, 34), sens=0.65):
-        self.image_src = image_src
+    def __init__(self, image_src: str, paper: tuple[int, int], sensitivity: float | int):
         self.image = Image.open(image_src)
         self.paper_size = (paper[0] * 3, paper[1] * 3)  # *3 потому что каждая клетка разбивается на 9
-        self.sens = sens
-        self.variables = {i: int(i * (255 / self.variables_count * self.sens)) for i in
-                          range(self.variables_count)}
+        self.sensitivity = sensitivity
+        self.points = {i: int(i * (255 / self.number_of_point_types * self.sensitivity)) for i in
+                       range(self.number_of_point_types)}
 
     def reconstruct(self) -> None:
         """
@@ -29,21 +28,23 @@ class Img:
              int(self.image.size[1] * (self.paper_size[temp_bool] /
                                        self.image.size[temp_bool]))),
             resample=Image.BOX)
-        background = Image.new('RGB', (self.image.size[0] * 20, self.image.size[1] * 20))  # создаю фон
-        background.paste((255, 255, 255), [0, 0, background.size[0], background.size[1]])
-        for i in range(self.image.size[0]):
-            for j in range(self.image.size[1]):
-                point: Image = None  # и в фон вставляю картинки с разной узором (, а также, соответственно, яркостью)
-                for number_of_variables in range(self.variables_count - 1, -1, -1):
-                    if sum(self.image.getpixel((i, j))) / 3 > self.variables[number_of_variables]:
-                        point = Image.open(self.variables_img[number_of_variables])
-                        break
-                background.paste(point, (i * 20, j * 20))
-        background.show()
-        background.save('out.jpg')
+
+        reconstructed_image = Image.new('RGB', (  # создаю фон
+            self.image.size[0] * self.px_in_point, self.image.size[1] * self.px_in_point))
+
+        for x_coord in range(self.image.size[0]):
+            for y_coord in range(self.image.size[1]):
+                for point_type in range(self.number_of_point_types - 1, -1, -1):
+                    if sum(self.image.getpixel((x_coord, y_coord))) / 3 > self.points[point_type]:
+                        reconstructed_image.paste(Image.open(self.point_types[point_type]),
+                                                  (x_coord * self.px_in_point, y_coord * self.px_in_point))
+                        break  # и в фон вставляю картинки с разным узором (, а также, соответственно, яркостью)
+
+        reconstructed_image.show()
+        reconstructed_image.save('out.jpg')
 
 
-x = Img()
+x = Img('img_1.png', (40, 34), 0.65)
 x.reconstruct()
 #
 #
