@@ -46,32 +46,32 @@ class Img:
 
 x = Img('img_1.png', (40, 34), 0.65)
 x.reconstruct()
-#
-#
-# @bot.message_handler(commands=['start'])
-# def _start(message):
-#     msg = """
-#     Скорее отправляй фото!
-# Хочешь узнать как будет происходить процесс рисования? Используй команду /help
-#     """
-#     bot.send_message(message.chat.id, msg)
-#
-#
-# @bot.message_handler(commands=['help'])
-# def _help(message):
-#     msg = """
-#     Итак. Всё на самом деле просто!
-# Ты отправляешь мне фото - я предлагаю варианты рисования - ты выбираешь понравившийся и мы вместе рисуем! Готово!
-#     """
-#     bot.send_message(message.chat.id, msg)
-#
-#
-# @bot.message_handler(content_types=['text'])
-# def _other(message):
-#     bot.send_message(message.chat.id, 'Я вас не понимаю. Помощь - /help')
-#     # find(message.text.upper())
-#     # with open('out.png', 'rb') as photo:
-#     #     bot.send_photo(message.chat.id, photo)
-#
-#
-# bot.polling()
+
+
+@bot.message_handler(commands=['start'])
+def _start(message):
+    msg = """
+    Скорее отправляй фото!
+Хочешь узнать как будет происходить процесс рисования? Используй команду /help
+    """
+    bot.send_message(message.chat.id, msg)
+
+
+@bot.message_handler(commands=['help'])
+def _help(message):
+    msg = """
+    Итак. Всё на самом деле просто!
+Ты отправляешь мне фото - я предлагаю варианты рисования - ты выбираешь понравившийся и мы вместе рисуем! Готово!
+    """
+    bot.send_message(message.chat.id, msg)
+
+
+@bot.message_handler(content_types=['text'])
+def _other(message):
+    bot.send_message(message.chat.id, 'Я вас не понимаю. Помощь - /help')
+    # find(message.text.upper())
+    # with open('out.png', 'rb') as photo:
+    #     bot.send_photo(message.chat.id, photo)
+
+
+bot.polling()
