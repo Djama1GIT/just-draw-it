@@ -1,5 +1,6 @@
 import telebot
 from PIL import Image
+import io
 
 with open('token.txt') as _token:
     token = _token.readline()
@@ -11,8 +12,8 @@ class Img:
     point_types = {i: f'{i}.png' for i in range(number_of_point_types)}
     px_in_point = 20
 
-    def __init__(self, image_src: str, paper: tuple[int, int], sensitivity: float | int):
-        self.image = Image.open(image_src)
+    def __init__(self, image_data: bytes, paper: tuple[int, int], sensitivity: float | int):
+        self.image = Image.open(io.BytesIO(image_data))
         self.paper_size = (paper[0] * 3, paper[1] * 3)  # *3 потому что каждая клетка разбивается на 9
         self.sensitivity = sensitivity
         self.points = {i: int(i * (255 / self.number_of_point_types * self.sensitivity)) for i in
@@ -40,12 +41,8 @@ class Img:
                                                   (x_coord * self.px_in_point, y_coord * self.px_in_point))
                         break  # и в фон вставляю картинки с разным узором (, а также, соответственно, яркостью)
 
-        reconstructed_image.show()
-        reconstructed_image.save('out.jpg')
-
-
-x = Img('img_1.png', (40, 34), 0.65)
-x.reconstruct()
+        # reconstructed_image.show()
+        reconstructed_image.save('out.png')
 
 
 @bot.message_handler(commands=['start'])
@@ -66,7 +63,14 @@ def _help(message):
     bot.send_message(message.chat.id, msg)
 
 
-@bot.message_handler(content_types=['text'])
+@bot.message_handler(content_types=['photo'])
+def _photo(message):
+    photo = bot.download_file(bot.get_file(message.photo[-1].file_id).file_path)
+    Img(photo, (40, 34), 1.1).reconstruct()
+    with open('out.png', "rb") as _new_photo:
+        bot.send_photo(message.chat.id, _new_photo)
+
+
 def _other(message):
     bot.send_message(message.chat.id, 'Я вас не понимаю. Помощь - /help')
     # find(message.text.upper())
