@@ -1,19 +1,15 @@
-import telebot
 from PIL import Image
 import io
-
-with open('token.txt') as _token:
-    token = _token.readline()
-bot = telebot.TeleBot(token)
 
 
 class Img:
     number_of_point_types = 5
-    point_types = {i: f'{i}.png' for i in range(number_of_point_types)}
+    point_types = {i: f'images/{i}.png' for i in range(number_of_point_types)}
     px_in_point = 20
 
-    def __init__(self, image_data: bytes, paper: tuple[int, int], sensitivity: float | int):
+    def __init__(self, image_data: bytes, file_name: str, paper: tuple[int, int], sensitivity: float | int):
         self.image = Image.open(io.BytesIO(image_data))
+        self.file_name = file_name
         self.paper_size = (paper[0] * 3, paper[1] * 3)  # *3 потому что каждая клетка разбивается на 9
         self.sensitivity = sensitivity
         self.points = {i: int(i * (255 / self.number_of_point_types * self.sensitivity)) for i in
@@ -42,40 +38,4 @@ class Img:
                         break  # и в фон вставляю картинки с разным узором (, а также, соответственно, яркостью)
 
         # reconstructed_image.show()
-        reconstructed_image.save('out.png')
-
-
-@bot.message_handler(commands=['start'])
-def _start(message):
-    msg = """
-    Скорее отправляй фото!
-Хочешь узнать как будет происходить процесс рисования? Используй команду /help
-    """
-    bot.send_message(message.chat.id, msg)
-
-
-@bot.message_handler(commands=['help'])
-def _help(message):
-    msg = """
-    Итак. Всё на самом деле просто!
-Ты отправляешь мне фото - я предлагаю варианты рисования - ты выбираешь понравившийся и мы вместе рисуем! Готово!
-    """
-    bot.send_message(message.chat.id, msg)
-
-
-@bot.message_handler(content_types=['photo'])
-def _photo(message):
-    photo = bot.download_file(bot.get_file(message.photo[-1].file_id).file_path)
-    Img(photo, (40, 34), 1.1).reconstruct()
-    with open('out.png', "rb") as _new_photo:
-        bot.send_photo(message.chat.id, _new_photo)
-
-
-def _other(message):
-    bot.send_message(message.chat.id, 'Я вас не понимаю. Помощь - /help')
-    # find(message.text.upper())
-    # with open('out.png', 'rb') as photo:
-    #     bot.send_photo(message.chat.id, photo)
-
-
-bot.polling()
+        reconstructed_image.save(f'temp/{self.file_name}.png')
